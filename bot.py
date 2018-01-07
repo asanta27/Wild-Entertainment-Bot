@@ -14,7 +14,7 @@ client = Client(account_sid, auth_token)
 credentials = ServiceAccount(username='#########"', password='#########"')
 account = Account(primary_smtp_address='#########"', credentials=credentials, autodiscover=True, access_type=DELEGATE)
 
-# Cache Exchange Credentials
+# Cache Exchange Credentials. This prevents server timeout
 ews_url = account.protocol.service_endpoint
 ews_auth_type = account.protocol.auth_type
 primary_smtp_address = account.primary_smtp_address
@@ -32,6 +32,8 @@ template_inbox = myaccount.root.get_folder_by_name('Template')
 template_scan = main_inbox.filter(subject='New Request!')
 executed_inbox = myaccount.root.get_folder_by_name('Executed')
 
+
+# These are "Google Voice ID" phone number's. Not actual phone numbers of entertainers. 
 contact = {'ADMIN': "+15559075019",
            'Justin': "+17863534720",
            'Fabian': "+13137181197",
@@ -83,7 +85,7 @@ def text_talent(list, position):
                            sms_location + "\n" +
                            "Women: " + event_numgirls + "\n" +
                                  "Men: " + event_numguys + monty + "\n\n" +
-                                 "Are you available to do this?" + robot)
+                                 "Are you available to do this?" + "\n-Bot")
     return
 
 # Create Outlook Event
@@ -103,10 +105,14 @@ def create_event(customer, body, date, open_men, messaged,location):
 loop = 0
 while loop == 0:
     time.sleep(2)
+
+    # Quarantine New Request
     template_scan = main_inbox.filter(subject='New Request!')
     for items in template_scan:
         items.move(template_inbox)
     to_do_list = template_inbox.all().count()
+
+    # Process most recent request
     if to_do_list != 0:
         latest_request = template_inbox.filter(subject='New Request!').order_by('-datetime_received')[:1]
         for items in latest_request:
@@ -114,6 +120,7 @@ while loop == 0:
             htmlBody = items.body
             items.move(executed_inbox)
 
+        # Scrape email and store data in variables
         end_string = "<"
         customer_name = search_email(s, "Name: ", end_string).strip()
         customer_phone = search_email(s, "Phone: ", end_string)
@@ -152,9 +159,9 @@ while loop == 0:
         timeHours = 0
         timeMins = 0
 
-        # assigns values to timeHours & timeMinutes variables
-        if "Minutes" in stringTime:
-            timeMins = int(timeVal) + 29
+        # assigns values to timeHours & timeMinutes variables. This is needed for EWS date format
+        if "minutes" in stringTime:
+            timeMins = int(timeVal)
             timeHours = 0
         elif "hour" in stringTime:
             timeHours = int(timeVal)
@@ -171,6 +178,8 @@ while loop == 0:
         nextWeek = date + datetime.timedelta(days=90)
 
         top_choices = [first_choice,second_choice,third_choice,fourth_choice]
+
+        # fourth choice is optional on form
         if not fourth_choice:
            top_choices.remove(fourth_choice)
 
@@ -179,13 +188,17 @@ while loop == 0:
         open_men = []
         messaged = ""
 
+        # Check availability of entertainer, send SMS if they are available.
         for i, choice in enumerate(top_choices):
+
+        		# search for an existing event with this entertainer
             search_event = reservations_calendar.filter(subject__contains=choice,start__range=(
             tz.localize(EWSDateTime(previousWeek.year,previousWeek.month,previousWeek.day)),
             tz.localize(EWSDateTime(enddate.year, enddate.month, enddate.day, enddate.hour, enddate.minute))),end__range=(
             tz.localize(EWSDateTime(partyDate.year, partyDate.month, partyDate.day, partyDate.hour , partyDate.minute)),
             tz.localize(EWSDateTime(nextWeek.year,nextWeek.month,nextWeek.day))))
 
+            # search availability calendar to make sure entertainer is not in town or at their day job
             search_availability = availability_calendar.filter(subject__contains=choice,start__range=(
             tz.localize(EWSDateTime(previousWeek.year,previousWeek.month,previousWeek.day)),
             tz.localize(EWSDateTime(enddate.year, enddate.month, enddate.day, enddate.hour, enddate.minute))),end__range=(
@@ -200,6 +213,8 @@ while loop == 0:
             for item in search_availability:
                 availability_subject = item.subject
 
+
+            # Determines if entertainer is booked (C) or simply not available by the Subject lines of events found.
             if ("(C)" in event_subject) or (choice in availability_subject):
                 top_choices[i] = choice + ": Booked"
                 if "Party" in event_subject:
@@ -209,13 +224,10 @@ while loop == 0:
                 top_choices[i] = choice + ": Open"
                 print(top_choices[i])
 
-            robot = ""
-
             if "Open" in top_choices[i]:
                 open_men.insert(talent, top_choices[i][:-6])
                 if search_contacts(contact, open_men[talent]) in top_choices[i]:
                     if new_first_choice is True:
-                        robot = "\n-Bot"
                         print("> Sent SMS to " + open_men[talent] + " at " + time.strftime("%I:%M:%S %p"))
                         text_talent(open_men, talent)
                         messaged = " • TXT: " + open_men[talent]
