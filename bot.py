@@ -99,7 +99,7 @@ def create_event(customer, body, date, open_men, messaged,location):
   #  item.subject = "(N) " + customer
     item.save()  # When the items has an item_id, this will update the item
 
-# Begin the robot
+# Begin bot
 loop = 0
 while loop == 0:
     time.sleep(2)
