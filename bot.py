@@ -191,7 +191,7 @@ while loop == 0:
         # Check availability of entertainer, send SMS if they are available.
         for i, choice in enumerate(top_choices):
 
-        		# search for an existing event with this entertainer
+        	# search for an existing event with this entertainer
             search_event = reservations_calendar.filter(subject__contains=choice,start__range=(
             tz.localize(EWSDateTime(previousWeek.year,previousWeek.month,previousWeek.day)),
             tz.localize(EWSDateTime(enddate.year, enddate.month, enddate.day, enddate.hour, enddate.minute))),end__range=(
@@ -214,7 +214,7 @@ while loop == 0:
                 availability_subject = item.subject
 
 
-            # Determines if entertainer is booked (C) or simply not available by the Subject lines of events found.
+            # Determines if entertainer is booked '(C)' or simply not available by the Subject lines of events found. Labels them as OPEN
             if ("(C)" in event_subject) or (choice in availability_subject):
                 top_choices[i] = choice + ": Booked"
                 if "Party" in event_subject:
