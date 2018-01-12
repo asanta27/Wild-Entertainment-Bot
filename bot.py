@@ -6,7 +6,7 @@ import html
 
 # Twilio Credentials
 account_sid = "#########"
-auth_token = "#########""
+auth_token = "#########"
 
 client = Client(account_sid, auth_token)
 
@@ -41,7 +41,6 @@ contact = {'ADMIN': "+15559075019",
            'Chris': "+19726769249",
            'Savage': "+16175280744",
            'Santos': "+17862453319",
-           'Ricky': "+16175280709",
            'Aston': "+16178710541",
            'Javier': "+12027093181",
            'Silk': "+19726768619",
@@ -54,8 +53,7 @@ contact = {'ADMIN': "+15559075019",
            'Chase': "+19726769897",
            'Simon': "+16178719439",
            'Sebastian': "+12675075059",
-           'Roddy': "+17862501575",
-           'Tiger': "+19726769330"}
+           'Roddy': "+17862501575"}
 
 # Search the Email Body
 def search_email(s, first, last):
@@ -84,7 +82,7 @@ def text_talent(list, position):
                             event_length + "\n" +
                            sms_location + "\n" +
                            "Women: " + event_numgirls + "\n" +
-                                 "Men: " + event_numguys + monty + "\n\n" +
+                                 "Men: " + event_numguys + add_ons + "\n\n" +
                                  "Are you available to do this?" + "\n-Bot")
     return
 
@@ -139,7 +137,7 @@ while loop == 0:
         second_choice = search_email(s, "Choice #2: ", end_string).strip()
         third_choice = search_email(s, "Choice #3: ", end_string).strip()
         fourth_choice = search_email(s, "Choice #4: ", end_string).strip()
-        monty = search_email(s, "Add-Ons: ", end_string)
+        add_ons = search_email(s, "Add-Ons: ", end_string)
         special_request = search_email(s, "Special Request:", end_string)
 
 
@@ -149,10 +147,10 @@ while loop == 0:
         sms_location = ''.join(i for i in event_location if not i.isdigit()).lstrip()
 
         # adds line break to monty if it exist
-        if not monty:
-            monty = ""
+        if not add_ons:
+            add_ons = ""
         else:
-            monty = "\n" + monty
+            add_ons = "\n" + add_ons
 
         # Converts "1 Hour" into "1" "hour"
         timeVal,stringTime = event_length.split(" ")
@@ -184,7 +182,11 @@ while loop == 0:
            top_choices.remove(fourth_choice)
 
         talent = 0
+
+        # this variable represents the top choice entertainer that is available in our calendar.
+        # the bot is instructed to only text this entertainer.
         new_first_choice = True
+
         open_men = []
         messaged = ""
 
@@ -213,7 +215,6 @@ while loop == 0:
             for item in search_availability:
                 availability_subject = item.subject
 
-
             # Determines if entertainer is booked '(C)' or simply not available by the Subject lines of events found. Labels them as OPEN
             if ("(C)" in event_subject) or (choice in availability_subject):
                 top_choices[i] = choice + ": Booked"
@@ -229,10 +230,12 @@ while loop == 0:
                 if search_contacts(contact, open_men[talent]) in top_choices[i]:
                     if new_first_choice is True:
                         print("> Sent SMS to " + open_men[talent] + " at " + time.strftime("%I:%M:%S %p"))
+                        # send sms to the top choice entertainer who is available
                         text_talent(open_men, talent)
                         messaged = " • TXT: " + open_men[talent]
                         new_first_choice = False
                 elif "False" in search_contacts(contact, open_men[talent]):
+                # if contact is not in the database, send an sms to admin that will need to be manually forwarded
                     if new_first_choice is True:
                         client.messages.create(to="+15559075019",
                                                from_="+15552996262",
