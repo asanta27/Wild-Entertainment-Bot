@@ -1,5 +1,5 @@
 # Wild Bot
-The purpose of this scrypt was to simplify the booking process for Wild Entertainment. It takes a new entertainer request recieved via email, determines the availability of the entertainers requested, then sends an SMS to the entertainers using an exploit I found in Google Voice with Twilio integration. The exploit I found is the highlight of this project.
+The purpose of this script was to simplify the booking process for Wild Entertainment. It takes a new entertainer request recieved via email, determines the availability of the entertainers requested, then sends an SMS to the entertainers using an exploit I found in Google Voice with Twilio integration. The exploit I found is the highlight of this project.
 
 Workflow:
 1. New Entertainer Request (N.E.R.) are recieved.
